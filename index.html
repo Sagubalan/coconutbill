@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CocoBill • Coconut & Oil Shop</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- jsPDF CDN - required for PDF download -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@500;600&amp;display=swap');
+    </style>
+</head>
+<body>
+    <!-- HEADER -->
+    <header class="header">
+        <div class="header-content">
+            <!-- Shop Logo & Name -->
+            <div class="logo">
+                <span class="coconut-emoji">🥥</span>
+                <div>
+                    <h1>CocoBill</h1>
+                    <p class="shop-tagline">Coconut &amp; Oil Shop • Dindigul</p>
+                </div>
+            </div>
+
+            <!-- Navigation Tabs -->
+            <nav class="nav-tabs">
+                <button onclick="showSection('billing')" class="tab-btn active" id="tab-billing">
+                    🧾 Billing
+                </button>
+                <button onclick="showSection('products')" class="tab-btn" id="tab-products">
+                    📦 Products
+                </button>
+                <button onclick="showSection('history')" class="tab-btn" id="tab-history">
+                    📋 History
+                </button>
+                <button onclick="showSection('reports')" class="tab-btn" id="tab-reports">
+                    📊 Reports
+                </button>
+            </nav>
+
+            <div class="header-actions">
+                <!-- Dark Mode Toggle -->
+                <button onclick="toggleDarkMode()" class="dark-toggle" id="dark-toggle" title="Toggle Dark Mode">
+                    <span id="dark-icon">🌙</span>
+                </button>
+                
+                <!-- Shop Settings -->
+                <button onclick="showSettingsModal()" class="settings-btn">
+                    ⚙️
+                </button>
+                
+                <!-- Current User (Owner) -->
+                <div class="owner-info">
+                    <span class="owner-name">Sagubalan</span>
+                    <span class="owner-role">Owner</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="main-container">
+        
+        <!-- BILLING SECTION -->
+        <section id="billing-section" class="section active">
+            <div class="billing-header">
+                <h2>New Bill</h2>
+                <div class="bill-meta">
+                    <span id="current-bill-no" class="bill-number">BILL-00000</span>
+                    <span id="current-date" class="bill-date"></span>
+                </div>
+            </div>
+
+            <!-- Customer Details -->
+            <div class="customer-form">
+                <div class="form-group">
+                    <label>Customer Name</label>
+                    <input type="text" id="customer-name" placeholder="Walk-in customer" autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label>Mobile Number <span class="required">*</span></label>
+                    <input type="tel" id="customer-mobile" maxlength="10" placeholder="9876543210" autocomplete="off">
+                </div>
+            </div>
+
+            <!-- Add Item Form -->
+            <div class="add-item-panel">
+                <h3>Add Item to Bill</h3>
+                <div class="add-item-form">
+                    <select id="product-select" onchange="handleProductSelect()">
+                        <!-- Populated by JS -->
+                    </select>
+                    
+                    <div id="custom-fields" class="custom-fields hidden">
+                        <input type="text" id="custom-name" placeholder="Custom product name">
+                        <input type="text" id="custom-unit" placeholder="Unit (pcs / L / ml)" style="width:120px">
+                        <input type="number" id="custom-price" step="0.01" placeholder="Price ₹" style="width:100px">
+                    </div>
+                    
+                    <input type="number" id="item-qty" placeholder="Qty" step="0.01" min="0.01" value="1">
+                    <input type="number" id="item-price" step="0.01" placeholder="Price per unit" readonly>
+                    <button onclick="addItemToCurrentBill()" class="btn-primary">+ Add</button>
+                </div>
+            </div>
+
+            <!-- Bill Items Table -->
+            <div class="bill-table-container">
+                <table class="bill-table" id="bill-items-table">
+                    <thead>
+                        <tr>
+                            <th>Item</th>
+                            <th>Qty</th>
+                            <th>Unit</th>
+                            <th>Rate</th>
+                            <th>Amount</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="bill-items-body">
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Totals & Discount -->
+            <div class="bill-summary">
+                <div class="summary-row">
+                    <span>Subtotal</span>
+                    <span id="subtotal-display">₹0.00</span>
+                </div>
+                
+                <div class="discount-row">
+                    <div class="discount-type">
+                        <select id="discount-type" onchange="calculateCurrentBill()">
+                            <option value="percent">Percentage %</option>
+                            <option value="fixed">Fixed Amount ₹</option>
+                        </select>
+                        <input type="number" id="discount-value" value="0" step="0.01" min="0" oninput="calculateCurrentBill()">
+                    </div>
+                    <span id="discount-amount-display">- ₹0.00</span>
+                </div>
+                
+                <div class="summary-row total-row">
+                    <span><strong>Grand Total</strong></span>
+                    <span id="grand-total-display" class="grand-total">₹0.00</span>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="billing-actions">
+                <button onclick="clearCurrentBill()" class="btn-secondary">Clear Bill</button>
+                <button onclick="generateAndShowInvoice()" class="btn-primary large">💾 Generate Bill &amp; Invoice</button>
+                <div class="keyboard-hint">
+                    <span>💡 Press <kbd>Enter</kbd> after Qty to add item fast</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- PRODUCTS SECTION -->
+        <section id="products-section" class="section">
+            <div class="section-header">
+                <h2>Product Management</h2>
+                <button onclick="showAddProductModal()" class="btn-primary">+ New Product</button>
+            </div>
+            
+            <table class="data-table" id="products-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Unit</th>
+                        <th>Price (₹)</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="products-body">
+                    <!-- Populated by JS -->
+                </tbody>
+            </table>
+        </section>
+
+        <!-- HISTORY SECTION -->
+        <section id="history-section" class="section">
+            <div class="section-header">
+                <h2>Previous Bills</h2>
+                <input type="text" id="history-search" placeholder="🔎 Search by mobile or date (DD/MM)" onkeyup="filterHistory()">
+            </div>
+            
+            <table class="data-table" id="history-table">
+                <thead>
+                    <tr>
+                        <th>Bill No</th>
+                        <th>Date</th>
+                        <th>Customer</th>
+                        <th>Mobile</th>
+                        <th>Total (₹)</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="history-body">
+                    <!-- Populated by JS -->
+                </tbody>
+            </table>
+        </section>
+
+        <!-- REPORTS SECTION -->
+        <section id="reports-section" class="section">
+            <div class="section-header">
+                <h2>Daily Sales Report</h2>
+                <button onclick="exportAllData()" class="btn-secondary">📤 Export JSON</button>
+            </div>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>Today's Revenue</h3>
+                    <div class="stat-value" id="today-revenue">₹0.00</div>
+                    <small id="today-bills-count">0 bills</small>
+                </div>
+                <div class="stat-card">
+                    <h3>All-time Revenue</h3>
+                    <div class="stat-value" id="total-revenue">₹0.00</div>
+                    <small id="total-bills-count">0 bills</small>
+                </div>
+                <div class="stat-card">
+                    <h3>Average Bill Value</h3>
+                    <div class="stat-value" id="avg-bill">₹0.00</div>
+                </div>
+            </div>
+            
+            <div class="last-bills">
+                <h3>Last 5 Bills</h3>
+                <div id="last-bills-list" class="last-bills-container">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+            
+            <button onclick="resetAllData()" class="btn-danger reset-btn">🗑️ Reset ALL Data (Danger)</button>
+        </section>
+    </div>
+
+    <!-- INVOICE MODAL -->
+    <div id="invoice-modal" class="modal">
+        <div class="modal-content invoice-paper">
+            <div class="invoice-header">
+                <div class="invoice-logo">🥥 CocoBill</div>
+                <div id="invoice-shop-name" class="invoice-shop-name"></div>
+                <div id="invoice-shop-address" class="invoice-shop-address"></div>
+                <div class="invoice-meta">
+                    <div><strong>Bill No:</strong> <span id="modal-bill-no"></span></div>
+                    <div><strong>Date:</strong> <span id="modal-date"></span></div>
+                </div>
+            </div>
+            
+            <div class="customer-info-modal">
+                <strong>Customer:</strong> <span id="modal-customer-name"></span><br>
+                <strong>Mobile:</strong> <span id="modal-customer-mobile"></span>
+            </div>
+            
+            <table class="invoice-table" id="modal-invoice-table">
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th class="text-right">Qty</th>
+                        <th class="text-right">Rate</th>
+                        <th class="text-right">Amount</th>
+                    </tr>
+                </thead>
+                <tbody id="modal-items-body"></tbody>
+            </table>
+            
+            <div class="invoice-totals">
+                <div class="total-line">
+                    <span>Subtotal</span>
+                    <span id="modal-subtotal"></span>
+                </div>
+                <div class="total-line">
+                    <span>Discount</span>
+                    <span id="modal-discount" class="discount-text"></span>
+                </div>
+                <div class="grand-total-line">
+                    <span>GRAND TOTAL</span>
+                    <span id="modal-grand-total"></span>
+                </div>
+            </div>
+            
+            <div class="invoice-footer">
+                <p>Thank you for shopping with us! 🥥 Visit again at CocoFresh, Dindigul</p>
+                <p class="small">Powered by CocoBill • No GST applied as per shop policy</p>
+            </div>
+            
+            <!-- Modal Actions -->
+            <div class="modal-actions">
+                <button onclick="printInvoice()" class="btn-secondary">🖨️ Print</button>
+                <button onclick="downloadCurrentPDF()" class="btn-primary">📄 Download PDF</button>
+                <button onclick="sendViaWhatsApp()" class="btn-whatsapp">📱 Send on WhatsApp</button>
+                <button onclick="closeModal()" class="btn-secondary">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Product Modal -->
+    <div id="product-modal" class="modal">
+        <div class="modal-content small-modal">
+            <h3 id="product-modal-title">Add New Product</h3>
+            <div class="form-group">
+                <label>Product Name</label>
+                <input type="text" id="modal-product-name">
+            </div>
+            <div class="form-group">
+                <label>Unit (pcs, L, ml, bottle)</label>
+                <input type="text" id="modal-product-unit" value="pcs">
+            </div>
+            <div class="form-group">
+                <label>Price per unit (₹)</label>
+                <input type="number" id="modal-product-price" step="0.01">
+            </div>
+            <div class="modal-actions">
+                <button onclick="closeProductModal()" class="btn-secondary">Cancel</button>
+                <button onclick="saveProductModal()" id="save-product-btn" class="btn-primary">Save Product</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Shop Settings Modal -->
+    <div id="settings-modal" class="modal">
+        <div class="modal-content small-modal">
+            <h3>Shop Details</h3>
+            <div class="form-group">
+                <label>Shop Name</label>
+                <input type="text" id="settings-shop-name" value="CocoFresh">
+            </div>
+            <div class="form-group">
+                <label>Address</label>
+                <textarea id="settings-shop-address" rows="2">123 Coconut Market Road, Dindigul, Tamil Nadu - 624001</textarea>
+            </div>
+            <div class="form-group">
+                <label>Phone</label>
+                <input type="tel" id="settings-shop-phone" value="9876543210">
+            </div>
+            <div class="modal-actions">
+                <button onclick="closeSettingsModal()" class="btn-secondary">Cancel</button>
+                <button onclick="saveShopSettings()" class="btn-primary">Save Settings</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="toast hidden"></div>
+
+    <script src="script.js"></script>
+</body>
+</html>
