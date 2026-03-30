@@ -11,7 +11,7 @@ let bills = [];
 let currentBillItems = [];
 let shopDetails = {
     name: "CocoFresh",
-    address: "123 Coconut Market Road, Dindigul, Tamil Nadu - 624001",
+    address: " Nadu veethi, V,Palayam, Thuraiyur, Tamil Nadu - 624001",
     phone: "9876543210"
 };
 let currentEditingBill = null;   // For modal invoice
