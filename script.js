@@ -12,7 +12,7 @@ let currentBillItems = [];
 let shopDetails = {
     name: "CocoFresh",
     address: " Nadu veethi, V,Palayam, Thuraiyur, Tamil Nadu - 624001",
-    phone: "9876543210"
+    phone: "9047944069,9384351148"
 };
 let currentEditingBill = null;   // For modal invoice
 let editingProductId = null;     // For product modal
@@ -25,11 +25,12 @@ const STORAGE_KEYS = {
 
 // Default products for a coconut & oil shop
 const DEFAULT_PRODUCTS = [
-    { id: 1, name: "Tender Coconut", unit: "pcs", price: 35 },
-    { id: 2, name: "Mature Coconut", unit: "pcs", price: 22 },
-    { id: 3, name: "Coconut Oil 1L", unit: "bottle", price: 180 },
-    { id: 4, name: "Coconut Oil 500ml", unit: "bottle", price: 98 },
-    { id: 5, name: "Coconut Oil Bulk", unit: "L", price: 165 }
+    { id: 1, name: "Small Coconut", unit: "pcs", price: 15 },
+    { id: 2, name: "Medium Coconut", unit: "pcs", price: 20 },
+    { id: 2, name: "Big Coconut", unit: "pcs", price: 25 },
+    { id: 3, name: "Coconut Oil 1L", unit: "Litre", price: 300 },
+    { id: 4, name: "Coconut Oil 500ml", unit: "Litre", price: 150 },
+    { id: 5, name: "Coconut Oil Bulk", unit: "Litre", price: 290 }
 ];
 
 // Initialize the entire app
@@ -403,8 +404,8 @@ function downloadCurrentPDF() {
         }
         doc.text(item.name.substring(0, 28), 25, y);
         doc.text(`${item.qty} ${item.unit}`, 95, y);
-        doc.text(`₹${item.price}`, 125, y);
-        doc.text(`₹${item.lineTotal.toFixed(2)}`, 165, y);
+        doc.text(`Rs.${item.price}`, 125, y);
+        doc.text(`Rs.${item.lineTotal.toFixed(2)}`, 165, y);
         y += 8;
     });
     
